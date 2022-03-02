@@ -25,3 +25,5 @@ will dominate the population of Colokai in the ever changing world of Habanero.
 
 ## Screenshots
 
+![First](./images/2-28.png)
+![Second](./images/3-1.png)
