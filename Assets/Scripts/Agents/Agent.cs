@@ -14,32 +14,23 @@ public class Agent : MonoBehaviour
     public int Age { get; private set; }
     public Vector3 Velocity { get; private set; }
 
+    public float Fitness { get; set; }
     public float Hunger { get; private set; } = 1;
     public float Thirst { get; private set; } = 1;
     public float DesireToReproduce { get; private set; } = 0;
 
-    private class StateP
-    {
-        public StateT State { get; }
-        public ref float Val { get { return ref Val; } }
-
-        StateP(StateT state, ref float val)
-        {
-            State = state;
-            Val = val;
-        }
-    }
-
     public float TrackingDistance { get; private set; }
+    public float BaseTrackingDistance { get; set; }
     public List<Agent> FriendlyNear { get; private set; }
     public List<Agent> EnemyNear { get; private set; }
 
     public bool IsNearEnemy { get; private set; }
+
     public Vector3 DirToClosestEnemy { get; private set; }
+    public Vector3 DirToClosestFlirtyFriendly { get; private set; }
 
     public bool IsGrounded { get; private set; }
-    public string groundedName = "";
-    
+    private string groundedName = "";
 
     Mesh mesh;
     Color color;
@@ -50,7 +41,15 @@ public class Agent : MonoBehaviour
         Species = species;
         State = StateT.Idle;
         Velocity = velocity;
-        TrackingDistance = trackingDistance;
+        BaseTrackingDistance = trackingDistance;
+        TrackingDistance = BaseTrackingDistance * Mathf.Pow(2, Hunger);
+
+    }
+
+    public void Create(Vector3 velocity, float trackingDistance)
+    {
+        Velocity = velocity;
+        BaseTrackingDistance = trackingDistance;
     }
 
     public void Eat(float food)
@@ -63,8 +62,9 @@ public class Agent : MonoBehaviour
         Thirst = Mathf.Min(1, Thirst + fluid);
     }
 
-    public void Reproduce()
+    public void Reproduce(Agent other)
     {
+        SimulationSettings.Instance().GetEnvironment().Reproduce(Species, this, other);
         DesireToReproduce = 0;
     }
 
@@ -91,7 +91,12 @@ public class Agent : MonoBehaviour
         EnemyNear = new List<Agent>();
 
         DirToClosestEnemy = Vector3.zero;
+        DirToClosestFlirtyFriendly = Vector3.zero;
+
         float distanceToClosestEnemy = float.PositiveInfinity;
+        float distanceToClosestFlirtyFriendly = float.PositiveInfinity;
+
+
         foreach (Collider other in nearBy)
         {
             Agent agent;
@@ -108,9 +113,19 @@ public class Agent : MonoBehaviour
                         distanceToClosestEnemy = dist;
                         DirToClosestEnemy = (agent.gameObject.transform.position - gameObject.transform.position).normalized;
                     }
-                } else
+                }
+                else if (agent != this)
                 {
                     FriendlyNear.Add(agent);
+                    if (agent.State == StateT.Flirty)
+                    {
+                        float dist = Mathf.Abs(Vector3.Distance(agent.gameObject.transform.position, gameObject.transform.position));
+                        if (distanceToClosestFlirtyFriendly > dist)
+                        {
+                            distanceToClosestFlirtyFriendly = dist;
+                            DirToClosestFlirtyFriendly = (agent.transform.position - gameObject.transform.position).normalized;
+                        }
+                    }
                 }
             }
         }
@@ -120,14 +135,15 @@ public class Agent : MonoBehaviour
         return nearBy;
     }
 
-    // Start is called before the first frame update
-    public virtual void Start()
+    public void Spawn(Vector3 loc)
     {
+        gameObject.transform.position = loc;
+
         gameObject.AddComponent<MeshFilter>();
         gameObject.AddComponent<MeshRenderer>();
         gameObject.AddComponent<BoxCollider>();
         gameObject.AddComponent<Rigidbody>();
-        gameObject.AddComponent<MeshCollider>();   
+        gameObject.AddComponent<MeshCollider>();
 
         Material material = new Material(Shader.Find("Standard"));
         gameObject.GetComponent<Rigidbody>().freezeRotation = true;
@@ -135,13 +151,10 @@ public class Agent : MonoBehaviour
         if (Species == SpeciesT.Astabba)
         {
             color = Color.red;
-            
-            gameObject.transform.position = new Vector3(1, 3, 0);
         }
         else
         {
             color = Color.blue;
-            gameObject.transform.position = new Vector3(0, 3, 1);
         }
 
         material.color = color;
@@ -151,24 +164,37 @@ public class Agent : MonoBehaviour
         gameObject.GetComponent<Renderer>().material = material;
     }
 
-    // Update is called once per frame
-    public virtual void Update()
+    // Start is called before the first frame update
+    public virtual void Start()
     {
-        Track();
-        if (SimulationSettings.Instance().IsDebug())
+    }
+
+    public void FixedUpdate()
+    {
+        if(SimulationSettings.Instance().ticks % SimulationSettings.Instance().TicksPerDay == 0)
         {
-            DrawDebugGizmos();
+            Age++;
+            // TODO: Write age death
         }
     }
 
-    public void OnCollisionEnter(Collision collision)
+    // Update is called once per frame
+    public virtual void Update()
+    {
+        TrackingDistance = BaseTrackingDistance * Mathf.Pow(2, Hunger);
+        Track();
+        DrawDebugGizmos();
+    }
+
+    public virtual void OnCollisionEnter(Collision collision)
     {
         if ((gameObject.transform.position - collision.collider.gameObject.transform.position).y > 0)
         {
             gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
             IsGrounded = true;
             groundedName = collision.collider.gameObject.name;
-        } else if (collision.gameObject.name == "Floor")
+        }
+        else if (collision.gameObject.name == "Floor")
         {
             gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
             IsGrounded = true;
@@ -180,7 +206,8 @@ public class Agent : MonoBehaviour
         if (collision.gameObject.name == "Floor")
         {
             IsGrounded = false;
-        } else if(collision.collider.gameObject.name == groundedName)
+        }
+        else if (collision.collider.gameObject.name == groundedName)
         {
             IsGrounded = false;
             groundedName = "";
@@ -189,7 +216,11 @@ public class Agent : MonoBehaviour
 
     public void DrawDebugGizmos()
     {
-        DrawDebugAxis();
+        if (SimulationSettings.Instance().IsDebug())
+        {
+            DrawDebugAxis();
+        }
+
         DrawDebugRadius();
     }
 
@@ -197,12 +228,33 @@ public class Agent : MonoBehaviour
     {
         // Draw axis -- ensure that editor gizmos are set
         float showTime = 0.01f;
-        Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + Vector3.forward, Color.green, showTime, true);
-        Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + Vector3.back, Color.green, showTime, true);
-        Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + Vector3.right, Color.green, showTime, true);
-        Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + Vector3.left, Color.green, showTime, true);
-        if (IsNearEnemy)
-            Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + (TrackingDistance / 2 * DirToClosestEnemy), Color.red, showTime, true);
+        Color color = Color.green;
+
+        if (State == StateT.Fleeing)
+            color = Color.yellow;
+        else if (State == StateT.Flirty)
+            color = Color.magenta;
+        else if (State == StateT.Hungry)
+            color = Color.red;
+        else if (State == StateT.Idle)
+            color = Color.white;
+        else if (State == StateT.Thirsty)
+            color = Color.blue;
+
+        Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + Vector3.forward, color, showTime, true);
+        Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + Vector3.back, color, showTime, true);
+        Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + Vector3.right, color, showTime, true);
+        Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + Vector3.left, color, showTime, true);
+
+        Vector3 end = Vector3.zero;
+
+        if (State == StateT.Hungry && IsNearEnemy)
+            end = TrackingDistance / 2 * DirToClosestEnemy;
+
+        else if (State == StateT.Flirty)
+            end = (TrackingDistance / 2 * DirToClosestFlirtyFriendly);
+
+        Debug.DrawLine(gameObject.transform.position, gameObject.transform.position + end, color, showTime, true);
     }
 
     public void DrawDebugRadius()
@@ -218,34 +270,37 @@ public class Agent : MonoBehaviour
             line.startWidth = 0.1f;
             line.endWidth = 0.1f;
             line.material = new Material(Shader.Find("Mobile/Particles/Additive"));
-            
+
+            float x;
+            float z;
+
+            float angle = 20f;
+
+            for (int i = 0; i < (segments + 1); i++)
+            {
+                x = Mathf.Sin(Mathf.Deg2Rad * angle) * TrackingDistance;
+                z = Mathf.Cos(Mathf.Deg2Rad * angle) * TrackingDistance;
+
+                line.SetPosition(i, new Vector3(x, 0, z));
+
+                angle += (360f / segments);
+            }
+
         }
 
         line = gameObject.GetComponent<LineRenderer>();
+
+        line.enabled = SimulationSettings.Instance().IsDebug();
+
         if (IsNearEnemy)
         {
             line.startColor = Color.red;
             line.endColor = Color.red;
-        } else
+        }
+        else
         {
             line.startColor = Color.white;
             line.endColor = Color.white;
-        }
-
-        float x;
-        float y;
-        float z;
-
-        float angle = 20f;
-
-        for (int i = 0; i < (segments + 1); i++)
-        {
-            x = Mathf.Sin(Mathf.Deg2Rad * angle) * TrackingDistance;
-            z = Mathf.Cos(Mathf.Deg2Rad * angle) * TrackingDistance;
-
-            line.SetPosition(i, new Vector3(x, 0, z));
-
-            angle += (360f / segments);
         }
     }
 

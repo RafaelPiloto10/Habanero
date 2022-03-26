@@ -32,17 +32,22 @@ public class Environment : MonoBehaviour
 
         for (int i = 0; i < SimulationSettings.Instance().astabbasInitalPop; i++)
         {
-            GameObject astabba = new GameObject("Astabba");
-            astabba.gameObject.transform.parent = astabbaPopulation.gameObject.transform;
-
-            astabbas.Add(astabba.AddComponent<Astabba>());
+            Vector2 pos = Random.insideUnitCircle;
+            GameObject astabbaGameObject= new GameObject("Astabba");
+            Astabba astabba = astabbaGameObject.AddComponent<Astabba>();
+            astabbas.Add(astabba);
+            astabbaGameObject.transform.SetParent(astabbaPopulation.transform, false);
+            astabba.Spawn(new Vector3(SimulationSettings.Instance().WorldRadius * pos.x, 1, SimulationSettings.Instance().WorldRadius * pos.y));
         }
 
         for (int i = 0; i < SimulationSettings.Instance().colokaiInitalPop; i++)
         {
-            GameObject colokai = new GameObject("Colokai");
-            colokai.gameObject.transform.parent = colokaiPopulation.gameObject.transform;
-            colokais.Add(colokai.AddComponent<Colokai>());
+            Vector2 pos = Random.insideUnitCircle;
+            GameObject colokaiGameObject = new GameObject("Colokai");
+            Colokai colokai = colokaiGameObject.AddComponent<Colokai>();
+            colokais.Add(colokai);
+            colokaiGameObject.transform.SetParent(colokaiPopulation.transform, false);
+            colokai.Spawn(new Vector3(SimulationSettings.Instance().WorldRadius * pos.x, 1, SimulationSettings.Instance().WorldRadius * pos.y));
         }
 
     }
@@ -50,5 +55,39 @@ public class Environment : MonoBehaviour
     // Update is called once per frame
     public void Update()
     {
+    }
+
+    public void FixedUpdate()
+    {
+        SimulationSettings.Instance().tick();
+    }
+
+    public void Reproduce(Agent.SpeciesT species, Agent parent1, Agent parent2)
+    {
+        Vector3 vel = Random.value <= 0.5 ? parent1.Velocity : parent2.Velocity;
+        float fitness = Random.value <= 0.5 ? parent1.Fitness : parent2.Fitness;
+        float trackingDist = Random.value <= 0.5 ? parent1.BaseTrackingDistance : parent2.BaseTrackingDistance;
+
+        Vector3 velMutation = Random.value <= 0.5 ? vel : vel * Random.Range(0.7f, 1.3f);
+        float fitnessMutation = Random.value <= 0.5 ? fitness : fitness * Random.Range(0.7f, 1.3f);
+        float trackingDistMutation = Random.value <= 0.5 ? trackingDist : trackingDist * Random.Range(0.7f, 1.3f);
+
+        if (species == Agent.SpeciesT.Astabba)
+        {
+            GameObject astabbaGameObject = new GameObject("Astabba");
+            Astabba astabba = astabbaGameObject.AddComponent<Astabba>();
+            astabba.Create(velMutation, trackingDistMutation, fitnessMutation);
+            astabbas.Add(astabba);
+            astabbaGameObject.transform.SetParent(astabbaPopulation.transform, false);
+            astabba.Spawn(new Vector3(parent1.transform.position.x, 1, parent2.transform.position.z));
+        } else
+        {
+            GameObject colokaiGameObject = new GameObject("Colokai");
+            Colokai colokai = colokaiGameObject.AddComponent<Colokai>();
+            colokai.Create(velMutation, trackingDistMutation, fitnessMutation);
+            colokais.Add(colokai);
+            colokaiGameObject.transform.SetParent(colokaiPopulation.transform, false);
+            colokai.Spawn(new Vector3(parent1.transform.position.x, 1, parent2.transform.position.z));
+        }
     }
 }
