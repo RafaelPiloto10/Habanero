@@ -8,7 +8,7 @@ public class Colokai : Agent
     public float ThirstDecayRate { get; private set; }
     public float DesireToReproduceRate { get; private set; }
 
-public Colokai() : base(0, SpeciesT.Colokai, new Vector3(3, 5, 3), 4f) { }
+public Colokai() : base(0, SpeciesT.Colokai, new Vector3(3, 3, 3), 4f) { }
 
     // Start is called before the first frame update
     public override void Start()
@@ -16,7 +16,7 @@ public Colokai() : base(0, SpeciesT.Colokai, new Vector3(3, 5, 3), 4f) { }
         base.Start();
         gameObject.tag = "Colokai";
 
-        Fitness = 1000;
+        Fitness = 10000;
         HungerDecayRate = 2 / Fitness;
         ThirstDecayRate = 5 / Fitness;
         DesireToReproduceRate = 0.002f;
@@ -74,7 +74,8 @@ public Colokai() : base(0, SpeciesT.Colokai, new Vector3(3, 5, 3), 4f) { }
         }
 
         gameObject.GetComponent<Rigidbody>().velocity = v;
-
+        float rotateSpeed = GetComponent<Rigidbody>().velocity.magnitude * 50;
+        transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
     }
 
     public void Step()
@@ -88,8 +89,8 @@ public Colokai() : base(0, SpeciesT.Colokai, new Vector3(3, 5, 3), 4f) { }
         else // Otherwise, eat
             SetState(StateT.Hungry);
 
-        // If we are not thirsty and more flirty, Let's Marvin Gaye and Get It On
-        if (State != StateT.Thirsty & DesireToReproduce <= Hunger)
+        // If we are not thirsty, old enough, and more flirty, Let's Marvin Gaye and Get It On
+        if (Age > 18 & State != StateT.Thirsty & DesireToReproduce <= Hunger)
             SetState(StateT.Flirty);
 
         if (IsNearEnemy) // Prioritize self preservation first
@@ -117,11 +118,8 @@ public Colokai() : base(0, SpeciesT.Colokai, new Vector3(3, 5, 3), 4f) { }
             Colokai colokai = collision.collider.gameObject.GetComponent<Colokai>();
             if (colokai.State == StateT.Flirty && State == StateT.Flirty)
             {
-                if (Random.value <= SimulationSettings.Instance().ReproductionSuccessRate)
-                {
                     Reproduce(colokai);
                     colokai.Reproduce(this);
-                }
             }
         }
     }

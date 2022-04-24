@@ -6,10 +6,10 @@ public class Astabba : Agent
 {
     public float HungerDecayRate { get; private set; }
     public float ThirstDecayRate { get; private set; }
-    public float DesireToReproduceRate { get; private set; } = 0.005f;
+    public float DesireToReproduceRate { get; private set; } = 0.00005f;
 
     // Start is called before the first frame update
-    public Astabba(string name) : base(0, SpeciesT.Astabba, new Vector3(4, 4, 4), 7f) { }
+    public Astabba() : base(0, SpeciesT.Astabba, new Vector3(2, 2, 2), 7f) { }
 
     public override void Start()
     {
@@ -17,7 +17,7 @@ public class Astabba : Agent
         gameObject.tag = "Astabba";
         SetState(StateT.Hungry);
 
-        Fitness = 1000;
+        Fitness = 10000;
         HungerDecayRate = 2 / Fitness;
         ThirstDecayRate = 1 / Fitness;
     }
@@ -68,11 +68,16 @@ public class Astabba : Agent
         dir.y = 1;
         Vector3 v = Vector3.Scale(Velocity, dir);
 
-        if (v.y > 1)
+        if (transform.position.y > Velocity.y)
         {
-            Debug.Log("Found y higher than 1: " + v.y);
+            // There's a bug.... and I think this fixes it... hopefully...
+            Debug.Log("Caught Astabba Flying! They don't have wings!!");
+            caughtFlying();
         }
+
         gameObject.GetComponent<Rigidbody>().velocity = v;
+        float rotateSpeed = GetComponent<Rigidbody>().velocity.magnitude * 50;
+        transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
     }
 
     public void Step()
@@ -86,8 +91,8 @@ public class Astabba : Agent
         else // Otherwise, eat
             SetState(StateT.Hungry);
 
-        // If we are not thirsty and more flirty, Let's Marvin Gaye and Get It On
-        if (State != StateT.Thirsty & DesireToReproduce <= Hunger)
+        // If we are not thirsty old enough, and more flirty, Let's Marvin Gaye and Get It On
+        if (Age > 18 & State != StateT.Thirsty & DesireToReproduce <= Hunger)
             SetState(StateT.Flirty);
     }
 
@@ -118,11 +123,8 @@ public class Astabba : Agent
             Astabba astabba = collision.collider.gameObject.GetComponent<Astabba>();
             if (astabba.State == StateT.Flirty && State == StateT.Flirty)
             {
-                if (Random.value <= SimulationSettings.Instance().ReproductionSuccessRate)
-                {
                     Reproduce(astabba);
                     astabba.Reproduce(this);
-                }
             }
         }
     }

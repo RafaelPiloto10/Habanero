@@ -11,6 +11,11 @@ public class Environment : MonoBehaviour
     List<Astabba> astabbas;
     List<Colokai> colokais;
 
+    [SerializeField]
+    GameObject astabbaTemplate;
+    [SerializeField]
+    GameObject colokaiTemplate;
+
     // Create Colokai
     // Create Astabbas
     // Create world
@@ -33,7 +38,8 @@ public class Environment : MonoBehaviour
         for (int i = 0; i < SimulationSettings.Instance().astabbasInitalPop; i++)
         {
             Vector2 pos = Random.insideUnitCircle;
-            GameObject astabbaGameObject= new GameObject("Astabba");
+            GameObject astabbaGameObject = Instantiate(astabbaTemplate, astabbaPopulation.transform);
+            astabbaGameObject.SetActive(true);
             Astabba astabba = astabbaGameObject.AddComponent<Astabba>();
             astabbas.Add(astabba);
             astabbaGameObject.transform.SetParent(astabbaPopulation.transform, false);
@@ -43,7 +49,8 @@ public class Environment : MonoBehaviour
         for (int i = 0; i < SimulationSettings.Instance().colokaiInitalPop; i++)
         {
             Vector2 pos = Random.insideUnitCircle;
-            GameObject colokaiGameObject = new GameObject("Colokai");
+            GameObject colokaiGameObject = Instantiate(colokaiTemplate, colokaiPopulation.transform);
+            colokaiGameObject.SetActive(true);
             Colokai colokai = colokaiGameObject.AddComponent<Colokai>();
             colokais.Add(colokai);
             colokaiGameObject.transform.SetParent(colokaiPopulation.transform, false);
@@ -74,13 +81,15 @@ public class Environment : MonoBehaviour
 
         if (species == Agent.SpeciesT.Astabba)
         {
+            Debug.Log("Creating a new Astabba!");
             GameObject astabbaGameObject = new GameObject("Astabba");
             Astabba astabba = astabbaGameObject.AddComponent<Astabba>();
             astabba.Create(velMutation, trackingDistMutation, fitnessMutation);
             astabbas.Add(astabba);
             astabbaGameObject.transform.SetParent(astabbaPopulation.transform, false);
             astabba.Spawn(new Vector3(parent1.transform.position.x, 1, parent2.transform.position.z));
-        } else
+        }
+        else
         {
             GameObject colokaiGameObject = new GameObject("Colokai");
             Colokai colokai = colokaiGameObject.AddComponent<Colokai>();

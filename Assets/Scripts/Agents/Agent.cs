@@ -64,7 +64,9 @@ public class Agent : MonoBehaviour
 
     public void Reproduce(Agent other)
     {
-        SimulationSettings.Instance().GetEnvironment().Reproduce(Species, this, other);
+        if (Age > 18) {
+            SimulationSettings.Instance().GetEnvironment().Reproduce(Species, this, other);
+        }
         DesireToReproduce = 0;
     }
 
@@ -138,30 +140,6 @@ public class Agent : MonoBehaviour
     public void Spawn(Vector3 loc)
     {
         gameObject.transform.position = loc;
-
-        gameObject.AddComponent<MeshFilter>();
-        gameObject.AddComponent<MeshRenderer>();
-        gameObject.AddComponent<BoxCollider>();
-        gameObject.AddComponent<Rigidbody>();
-        gameObject.AddComponent<MeshCollider>();
-
-        Material material = new Material(Shader.Find("Standard"));
-        gameObject.GetComponent<Rigidbody>().freezeRotation = true;
-
-        if (Species == SpeciesT.Astabba)
-        {
-            color = Color.red;
-        }
-        else
-        {
-            color = Color.blue;
-        }
-
-        material.color = color;
-
-        mesh = Resources.GetBuiltinResource<Mesh>("Cube.fbx");
-        gameObject.GetComponent<MeshFilter>().mesh = mesh;
-        gameObject.GetComponent<Renderer>().material = material;
     }
 
     // Start is called before the first frame update
@@ -307,5 +285,11 @@ public class Agent : MonoBehaviour
     public void SetState(StateT state)
     {
         State = state;
+    }
+
+    public void caughtFlying()
+    {
+        IsGrounded = false;
+        gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
     }
 }
