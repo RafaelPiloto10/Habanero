@@ -59,6 +59,7 @@ public class Agent : MonoBehaviour
 
     public void Drink(float fluid)
     {
+        Debug.Log("Drinking!");
         Thirst = Mathf.Min(1, Thirst + fluid);
     }
 
@@ -277,8 +278,9 @@ public class Agent : MonoBehaviour
         }
         else
         {
-            line.startColor = Color.white;
-            line.endColor = Color.white;
+            Color color = Terrain.WhereAmI(transform.position.y);
+            line.startColor = color;
+            line.endColor = color;
         }
     }
 
@@ -290,6 +292,6 @@ public class Agent : MonoBehaviour
     public void caughtFlying()
     {
         IsGrounded = false;
-        gameObject.GetComponent<Rigidbody>().velocity = Vector3.zero;
+        gameObject.GetComponent<Rigidbody>().velocity = Vector3.down;
     }
 }

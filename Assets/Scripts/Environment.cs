@@ -43,7 +43,7 @@ public class Environment : MonoBehaviour
             Astabba astabba = astabbaGameObject.AddComponent<Astabba>();
             astabbas.Add(astabba);
             astabbaGameObject.transform.SetParent(astabbaPopulation.transform, false);
-            astabba.Spawn(new Vector3(SimulationSettings.Instance().WorldRadius * pos.x, 1, SimulationSettings.Instance().WorldRadius * pos.y));
+            astabba.Spawn(new Vector3(SimulationSettings.Instance().WorldRadius * pos.x, 30, SimulationSettings.Instance().WorldRadius * pos.y));
         }
 
         for (int i = 0; i < SimulationSettings.Instance().colokaiInitalPop; i++)
@@ -54,7 +54,7 @@ public class Environment : MonoBehaviour
             Colokai colokai = colokaiGameObject.AddComponent<Colokai>();
             colokais.Add(colokai);
             colokaiGameObject.transform.SetParent(colokaiPopulation.transform, false);
-            colokai.Spawn(new Vector3(SimulationSettings.Instance().WorldRadius * pos.x, 1, SimulationSettings.Instance().WorldRadius * pos.y));
+            colokai.Spawn(new Vector3(SimulationSettings.Instance().WorldRadius * pos.x, 30, SimulationSettings.Instance().WorldRadius * pos.y));
         }
 
     }

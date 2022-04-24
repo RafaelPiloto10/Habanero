@@ -11,19 +11,22 @@ will dominate the population of Colokai in the ever changing world of Habanero.
 - [x] Create prey & predator classes
 - [x] Create environment class
 - [x] Create Debug settings
-- [ ] Implement movement to agents
-- [ ] Implement tracking to agents
-- [ ] Implement genes to agents
-- [ ] Implement reproduction to agents
-- [ ] Implement "desire" to Agents based on state (thirsty, hungry, reproduce, etc)
-- [ ] Create procedurally generated terrain
+- [x] Implement movement to agents
+- [x] Implement tracking to agents
+- [x] Implement genes to agents
+- [x] Implement reproduction to agents
+- [x] Implement "desire" to Agents based on state (thirsty, hungry, reproduce, etc)
+- [x] Create procedurally generated terrain
 - [ ] Create terrain classification (water spots, hills, food sources)
+  - Partially completed
 - [ ] Implement Agent detection to these locations
-- [ ] Implement dynamic, changing terrain
+- [x] Implement dynamic, changing terrain
 - [ ] Model agents
+  - Partially completed
 - [ ] Model food source
 
 ## Screenshots
 
 ![First](./images/2-28.png)
 ![Second](./images/3-1.png)
+![Third](./images/4-24.png)

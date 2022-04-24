@@ -68,16 +68,33 @@ public class Astabba : Agent
         dir.y = 1;
         Vector3 v = Vector3.Scale(Velocity, dir);
 
-        if (transform.position.y > Velocity.y)
-        {
-            // There's a bug.... and I think this fixes it... hopefully...
-            Debug.Log("Caught Astabba Flying! They don't have wings!!");
-            caughtFlying();
-        }
-
         gameObject.GetComponent<Rigidbody>().velocity = v;
         float rotateSpeed = GetComponent<Rigidbody>().velocity.magnitude * 50;
         transform.Rotate(0, rotateSpeed * Time.deltaTime, 0);
+
+        RaycastHit hit;
+
+        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.down), out hit, 30))
+        {
+            if (hit.transform.gameObject.name == "Floor")
+            {
+
+                Color color = Terrain.WhereAmI(transform.position.y);
+                if (color.r < 50.0f / 255.0f && color.g < 50.0f / 255.0f && color.b > 100.0f / 255.0f)
+                {
+                    Drink(0.2f);
+                }
+
+                if (hit.distance > Velocity.y / 1.1)
+                {
+                    // There's a bug.... and I think this fixes it... hopefully...
+                    Debug.Log("Caught Astabba Flying! They don't have wings!!");
+                    caughtFlying();
+
+                }
+            }
+        }
+
     }
 
     public void Step()
