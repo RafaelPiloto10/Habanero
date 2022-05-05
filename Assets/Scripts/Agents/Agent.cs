@@ -59,7 +59,6 @@ public class Agent : MonoBehaviour
 
     public void Drink(float fluid)
     {
-        Debug.Log("Drinking!");
         Thirst = Mathf.Min(1, Thirst + fluid);
     }
 
@@ -153,7 +152,11 @@ public class Agent : MonoBehaviour
         if(SimulationSettings.Instance().ticks % SimulationSettings.Instance().TicksPerDay == 0)
         {
             Age++;
-            // TODO: Write age death
+            if (Age > 100)
+            {
+                Debug.Log("Death and taxes were guaranteed to an agent!");
+                Destroy(this);
+            }
         }
     }
 

@@ -8,10 +8,10 @@ public class SimulationSettings : MonoBehaviour
 
     public bool debug = true;
 
-    [Range(1, 10)]
+    [Range(1, 100)]
     public int astabbasInitalPop = 1;
 
-    [Range(1, 10)]
+    [Range(1, 100)]
     public int colokaiInitalPop = 1;
 
     [Range(0, 1)]

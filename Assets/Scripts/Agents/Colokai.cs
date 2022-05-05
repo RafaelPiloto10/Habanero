@@ -83,19 +83,23 @@ public Colokai() : base(0, SpeciesT.Colokai, new Vector3(3, 3, 3), 4f) { }
         {
             if (hit.transform.gameObject.name == "Floor")
             {
-
-                Color color = Terrain.WhereAmI(transform.position.y);
-                if (color.r < 50.0f / 255.0f && color.g < 50.0f / 255.0f && color.b > 100.0f / 255.0f)
-                {
-                    Drink(0.2f);
-                }
-
                 if (hit.distance > Velocity.y / 1.1)
                 {
                     // There's a bug.... and I think this fixes it... hopefully...
                     Debug.Log("Caught Colokai Flying! They don't have wings!!");
                     caughtFlying();
 
+                } else
+                {
+                    Color color = Terrain.WhereAmI(transform.position.y);
+                    if (color.r < 50.0f / 255.0f && color.g < 50.0f / 255.0f && color.b > 100.0f / 255.0f)
+                    {
+                        Drink(0.2f); // drink in rivers
+                    }
+                    else if (color.r > 200.0f / 255.0f && color.g > 200.0f / 255.0f && color.b > 200.0f / 255.0f)
+                    {
+                        Eat(0.3f); // eat on mountains
+                    }
                 }
             }
         }
