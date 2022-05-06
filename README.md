@@ -21,9 +21,8 @@ will dominate the population of Colokai in the ever changing world of Habanero.
   - Partially completed
 - [ ] Implement Agent detection to these locations
 - [x] Implement dynamic, changing terrain
-- [ ] Model agents
-  - Partially completed
-- [ ] Model food source
+- [x] Model agents
+- [x] Model food source
 
 ## Screenshots
 
